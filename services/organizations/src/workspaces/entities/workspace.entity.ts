@@ -4,28 +4,27 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from "typeorm";
+import { Membership } from "./membership.entity";
 
-@Entity("users")
-export class User {
+@Entity("workspaces")
+export class Workspace {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ unique: true })
-  email: string;
-
-  @Column({ name: "keycloak_id", unique: true })
-  keycloakId: string;
-
-  @Column({ name: "is_host", default: false })
-  isHost: boolean;
-
-  @Column({ nullable: true })
+  @Column()
   name: string;
+
+  @Column({ unique: true, nullable: true })
+  slug: string;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @OneToMany(() => Membership, (membership) => membership.workspace)
+  memberships: Membership[];
 }

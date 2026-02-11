@@ -1,9 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
+import { RabbitMQService } from "../rabbitmq/rabbitmq.service";
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private rabbitMQService: RabbitMQService,
+  ) {}
 
   async validateKeycloakUser(payload: any) {
     // Payload viene del JWT de Keycloak
@@ -20,8 +24,18 @@ export class AuthService {
         name,
       });
 
-      // TODO: Emitir evento UserRegistered a RabbitMQ
-      console.log("🎉 UserRegistered event:", { userId: user.id, email });
+      // Emitir evento UserRegistered a RabbitMQ
+      await this.rabbitMQService.publish("user.registered", {
+        userId: user.id,
+        email: user.email,
+        keycloakId: user.keycloakId,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log("🎉 UserRegistered event published:", {
+        userId: user.id,
+        email,
+      });
     }
 
     return user;

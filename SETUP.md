@@ -64,7 +64,38 @@ El proyecto utiliza Docker Compose para manejar las bases de datos (PostgreSQL) 
     - **DB**: `localhost:5432`, user: `identity_user`, pass: `identity_pass`
     - **RabbitMQ**: `localhost:5672`, user: `saas`, pass: `saas123`
 
-## 4. Ejecución
+## 4. Configuración del Servicio de Organizaciones
+
+El servicio `services/organizations` ha sido creado.
+
+1.  **Navegar al directorio**:
+
+    ```bash
+    cd services/organizations
+    ```
+
+2.  **Instalar dependencias**:
+    Si la instalación automática falló o quedó incompleta, ejecuta:
+
+    ```bash
+    npm install
+    npm install @nestjs/typeorm typeorm pg amqplib @nestjs/config class-validator class-transformer
+    ```
+
+3.  **Configurar Variables de Entorno**:
+    Crea un archivo `.env` en `services/organizations/` con:
+    ```env
+    PORT=3002
+    DB_HOST=localhost
+    DB_PORT=5433
+    DB_USER=org_user
+    DB_PASSWORD=org_pass
+    DB_NAME=organizations
+    RABBITMQ_URL=amqp://saas:saas123@localhost:5672
+    NODE_ENV=development
+    ```
+
+## 5. Ejecución General
 
 Para iniciar el servicio en modo desarrollo:
 
