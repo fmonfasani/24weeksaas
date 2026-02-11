@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  # PostgreSQL para Identity Service
+  identity-db:
+    image: postgres:16-alpine
+    container_name: saas-identity-db
+    environment:
+      POSTGRES_DB: identity
+      POSTGRES_USER: identity_user
+      POSTGRES_PASSWORD: identity_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - identity-data:/var/lib/postgresql/data
+    networks:
+      - saas-network
+
+  # PostgreSQL para Organizations Service
+  organizations-db:
+    image: postgres:16-alpine
+    container_name: saas-organizations-db
+    environment:
+      POSTGRES_DB: organizations
+      POSTGRES_USER: org_user
+      POSTGRES_PASSWORD: org_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - organizations-data:/var/lib/postgresql/data
+    networks:
+      - saas-network
+
+  # RabbitMQ para eventos
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: saas-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: saas
+      RABBITMQ_DEFAULT_PASS: saas123
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - saas-network
+
+  # Keycloak DB
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: saas-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak_pass
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data
+    networks:
+      - saas-network
+
+  # Keycloak (Identity Provider)
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: saas-keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak_pass
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    ports:
+      - "8081:8080"
+    depends_on:
+      - keycloak-db
+    networks:
+      - saas-network
+
+volumes:
+  identity-data:
+  organizations-data:
+  rabbitmq-data:
+  keycloak-data:
+
+networks:
+  saas-network:
+    driver: bridge
